@@ -1,0 +1,27 @@
+﻿<Window x:Class="ICanCode.GuiClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ICanCode.GuiClient"
+        mc:Ignorable="d"
+        Title="ICanCode" Height="800" Width="950">
+    <Grid Name="mainGrid">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0" Grid.Row="0" Name="grid" Width="{Binding Path=ActualHeight, RelativeSource={RelativeSource Self}}">
+            <Grid.Background>
+                <ImageBrush ImageSource="/BG.jpg"/>
+            </Grid.Background>
+        </Grid>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <TextBox FontFamily="Courier New"  Name ="text" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" ></TextBox>
+        </Grid>
+        
+    </Grid>
+</Window>
