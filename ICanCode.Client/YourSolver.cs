@@ -71,31 +71,32 @@ namespace ICanCode.Client
                 return Command.DoNothing();
             }
 
+            //Check that fire is not danger and gun is ready
             if (CanFire(board, me))
             {
+                //Try to use Death Ray perk
                 if (Static.PerkCooldownDeathRay > 0)
                 {
-                    if (board.GetOtherHeroes().Any(hero => hero.Y == me.Y && hero.X > me.X && hero.GetLengthTo(me) < 10) ||
-                        board.GetZombies().Any(hero => hero.Y == me.Y && hero.X > me.X && hero.GetLengthTo(me) < 10))
+                    if (board.GetOtherHeroes().Any(hero => hero.Y == me.Y && hero.X > me.X && hero.GetLengthTo(me) < Constants.DeathRayLength) ||
+                        board.GetZombies().Any(hero => hero.Y == me.Y && hero.X > me.X && hero.GetLengthTo(me) < Constants.DeathRayLength))
                     {
-                        
                         board.AddOnLayer2(me.X, me.Y, '~');
                         return Command.Fire(Direction.Right);
                     }
-                    if (board.GetOtherHeroes().Any(hero => hero.Y == me.Y && hero.X < me.X && hero.GetLengthTo(me) < 10) ||
-                        board.GetZombies().Any(hero => hero.Y == me.Y && hero.X < me.X && hero.GetLengthTo(me) < 10))
+                    if (board.GetOtherHeroes().Any(hero => hero.Y == me.Y && hero.X < me.X && hero.GetLengthTo(me) < Constants.DeathRayLength) ||
+                        board.GetZombies().Any(hero => hero.Y == me.Y && hero.X < me.X && hero.GetLengthTo(me) < Constants.DeathRayLength))
                     {
                         board.AddOnLayer2(me.X, me.Y, '~');
                         return Command.Fire(Direction.Left);
                     }
-                    if (board.GetOtherHeroes().Any(hero => hero.X == me.X && hero.Y < me.Y && hero.GetLengthTo(me) < 10) ||
-                        board.GetZombies().Any(hero => hero.X == me.X && hero.Y < me.Y && hero.GetLengthTo(me) < 10))
+                    if (board.GetOtherHeroes().Any(hero => hero.X == me.X && hero.Y < me.Y && hero.GetLengthTo(me) < Constants.DeathRayLength) ||
+                        board.GetZombies().Any(hero => hero.X == me.X && hero.Y < me.Y && hero.GetLengthTo(me) < Constants.DeathRayLength))
                     {
                         board.AddOnLayer2(me.X, me.Y, '~');
                         return Command.Fire(Direction.Up);
                     }
-                    if (board.GetOtherHeroes().Any(hero => hero.X == me.X && hero.Y > me.Y && hero.GetLengthTo(me) < 10) ||
-                        board.GetZombies().Any(hero => hero.X == me.X && hero.Y > me.Y && hero.GetLengthTo(me) < 10))
+                    if (board.GetOtherHeroes().Any(hero => hero.X == me.X && hero.Y > me.Y && hero.GetLengthTo(me) < Constants.DeathRayLength) ||
+                        board.GetZombies().Any(hero => hero.X == me.X && hero.Y > me.Y && hero.GetLengthTo(me) < Constants.DeathRayLength))
                     {
                         board.AddOnLayer2(me.X, me.Y, '~');
                         return Command.Fire(Direction.Down);
@@ -124,12 +125,16 @@ namespace ICanCode.Client
             }
 
             Static.CanExit = false;
+            //Priority 1 aims: Corners of the full map (map new areas discovering)
             List<Point> bestPath = GetTheNearestToHero(GetCornersAims());
+
+            //Not discover new arias if level is not final (22) and exist already visible
             if (board.CurrentLevel < 22 && GetTheNearestToHero(GetExitAims()) != null)
             {
                 bestPath = null;
             }
 
+            //Strategy choice: Farm on the start or collect gold and go to exit
             if (GetTheNearestToHero(GetGoldAims()) != null || goldCollected > 0)
             {
                 Static.Farm = 0;
@@ -138,10 +143,14 @@ namespace ICanCode.Client
             {
                 Static.Farm = 1;
             }
+
+            //Kill other heroes on the start if no gold nearly
             if (Static.Farm == 1)
             {
                 bestPath = GetTheNearestToHero(GetFarmAims());
             }
+
+            //Go to nearest gold or perk
             if (bestPath == null)
             {
                 var stuffAims = new List<Point>();
@@ -149,9 +158,11 @@ namespace ICanCode.Client
                 stuffAims.AddRange(GetPerkAims());
                 bestPath = GetTheNearestToHero(stuffAims);
             }
+
+            //Try to find exit
             if (bestPath == null)
             {
-                Static.CanExit = true;
+                Static.CanExit = true; //Exit is allowed there are no other aims
                 bestPath = GetTheNearestToHero(GetExitAims());
                 if (bestPath != null)
                 {
@@ -164,6 +175,7 @@ namespace ICanCode.Client
                 Static.IsExitOpen = false;
             }
             
+            //If all map is discovered and no path to exit - try to move boxes that is nearest to exit
             if (bestPath == null && boxesMoved <= 5)
             {
                 var boxToPull = GetTheNearestToExit(GetBoxAims());
@@ -178,6 +190,8 @@ namespace ICanCode.Client
                     }
                 }
             }
+
+            //If still no exist after boxes move - kill everything
             if (bestPath == null)
             {
                 var heroAims = new List<Point>();
@@ -198,6 +212,8 @@ namespace ICanCode.Client
             }
             bestPath = bestPath.Select(x => x.AbsoluteToRelative(board.Size, board.Offset)).ToList();
             prevBestPath = bestPath;
+
+            //Show best path on the board
             foreach (var pathPoint in bestPath)
             {
                 board.AddOnLayer4(pathPoint.X, pathPoint.Y, 't');
@@ -239,8 +255,7 @@ namespace ICanCode.Client
             return Command.Jump(GetDirection(me, nextPosition));
         }
 
-
-
+        
         private void HandleDie()
         {
             if (prevState != null)
@@ -374,8 +389,7 @@ namespace ICanCode.Client
                 return !board.ShotIsDanger(me, PrevBoard);
             }
         }
-
-
+        
 
         private List<Point> GetTheNearestToHero(IEnumerable<Point> aims)
         {

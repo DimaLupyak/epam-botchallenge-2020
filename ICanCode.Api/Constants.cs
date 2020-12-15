@@ -7,5 +7,6 @@
         public const int MaxTurnCountWithoutAim = 4;
         public const int FullBoardSize = 40;
         public const string CacheFolder = "Cache";
+        public const int DeathRayLength = 10;
     }
 }
